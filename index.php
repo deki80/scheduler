@@ -1,5 +1,7 @@
 <?php
 
+require_once 'constants.php';
+
 spl_autoload_register(function ($class) {
 
     // project-specific namespace prefix
@@ -31,7 +33,6 @@ spl_autoload_register(function ($class) {
 
 use LLT\Init\Router;
 
-$router = new Router();
-$router->get('/test', 'PageController::index');
+Router::route(urldecode($_SERVER['REQUEST_URI']));
 
 

@@ -2,13 +2,25 @@
 
 namespace LLT\Controllers;
 
+use LLT\Init\Controller;
+use LLT\Init\View;
 
-class PageController
+
+class PageController extends Controller
 {
-
-    public static function index()
+    public function __construct($method, $param)
     {
-        echo 'Ovo je index stranica opet';
+        parent::__construct($method, $param);
+    }
+
+    public function index()
+    {
+        $this->view->load('index');
+    }
+
+    public static function start()
+    {
+        echo "Ovo je start stranica";
     }
 
 }

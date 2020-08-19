@@ -3,36 +3,33 @@
 namespace LLT\Init;
 
 
-class Router
-{
-    private $requestUri;
-    private $requestMethod;
+class Router {
+    private static $controller_obj;
 
-    public function __construct()
-    {
-        $this->requestUri = $_SERVER['REQUEST_URI'];
-        $this->requestMethod = strtolower($_SERVER['REQUEST_METHOD']);
-    }
+    private static $controller = null;
+    private static $method = null;
+    private static $param = null;
 
-    public function get(string $route, string $dispatchTo)
+    public static function route($url = null)
     {
-        if($this->requestMethod === 'get' && $this->isPathRegistered($route)) {
-            $handler = '\\LLT\\Controllers\\' . $dispatchTo;
-            $handler();
+        $url = explode('/', $url);
+
+        if(empty($url[1]) || !isset($url[1])) {
+            self::$controller = '\\LLT\\Controllers\\PageController';
+            self::$method = 'index';
         }else{
-            echo "pogrešna putanja";
+            self::$controller = '\\LLT\\Controllers\\'.ucfirst($url[1]).'Controller';
+            $method_from_url = empty($url[2]) ? 'index' : strtolower($url[2]);
+            $param = empty($url[3]) ? null : $url[3];
+            self::$method = $method_from_url;
+            self::$param = $param;
+        }
+
+        if(class_exists(self::$controller)) {
+            self::$controller_obj = new self::$controller(self::$method, self::$param);
+        }else{
+            $view = new View();
+            $view->load('404');
         }
     }
-
-    private function isPathRegistered($route)
-    {
-        return $this->requestUri == $route ? true : false;
-    }
-
-    private function dispatch(string $dispatchTo)
-    {
-        $handle = explode('::', $dispatchTo);
-    }
-
-
 }
