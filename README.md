@@ -13,6 +13,8 @@
 ## Visit url:
 `http://localhost:3000`
 
+#### Event details (name, email, phone) are stored in the description of event on calendar (when you log in calendar app)
+
 #### Posibile improvements:
 - [ ] Uses native php mail function, better solution is to use PHPMailer
 - [ ] Spam protection based on honeypot input field, better to use google recapcha invisible (problem for localhost development)
