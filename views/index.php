@@ -14,15 +14,18 @@
     <!-- Input -->
     <div class="input-container" id="input-container">
         <h1>Schedule A Meeting</h1>
-        <form class="form" id="countdownForm" action="/schedule" method="post">
+        <form class="form" id="scheduleForm" action="/schedule" method="post">
             <label for="title">Name</label>
-            <input type="text" id="name" name="name" placeholder="Your name...">
-            <label for="phone">Phone</label>
-            <input type="text" id="phone" name="phone" placeholder="Phone number...">
+            <input type="text" id="name" name="name" placeholder="Your name..." min="2" required>
+            <label for="phone">Phone <smal>Format: 064-111-1234</smal></label>
+            <input type="tel" id="phone" name="phone" placeholder="Phone number..." pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" required>
             <label for="email">Email</label>
-            <input type="text" id="email" name="email" placeholder="Your email address...">
+            <input type="email" id="email" name="email" placeholder="Your email address..." required>
             <label for="date-picker">Select a Date</label>
-            <input type="date" id="date-picker" name="date">
+            <input type="date" id="date-picker" name="date" required>
+            <label for="time-picker">Select Time</label>
+            <input type="time" id="time-picker" name="time" required>
+            <input type="hidden" name="honeypot">
             <button type="submit">Submit</button>
         </form>
     </div>
@@ -35,6 +38,6 @@
     </div>
 </div>
 <!-- Script -->
-<script src="script.js"></script>
+<script src="/views/media/js/script.js"></script>
 </body>
 </html>
