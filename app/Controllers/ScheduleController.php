@@ -4,7 +4,6 @@ namespace LLT\Controllers;
 
 
 use LLT\Init\Controller;
-use LLT\Init\Validator;
 
 use Google_Client;
 use Google_Service_Calendar;
@@ -13,10 +12,6 @@ use Google_Service_Calendar_EventDateTime;
 
 class ScheduleController extends Controller
 {
-    private $name, $phone, $email, $date;
-
-    private $errorUserInput = [];
-
     private $client;
 
     public function __construct($method, $param)
@@ -26,24 +21,27 @@ class ScheduleController extends Controller
 
     public function index()
     {
-
-
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $name = Validator::name($_POST['name']);
-            if(is_array($name)) {
-                array_push($this->errorUserInput, $name);
-            }else{
-                $this->name = $name;
-            }
-            $phone = strip_tags($_POST['phone']);
-            $email = strip_tags($_POST['email']);
-            $date = strip_tags($_POST['date']);
 
-            if(empty($this->errorUserInput)){
+            /* If honeypot is sent in the request - it is a script/bot */
+            if($_POST['honeypot'] === '') {
+                $name = strip_tags($_POST['name']);
+                $phone = strip_tags($_POST['phone']);
+                $email = strip_tags($_POST['email']);
+                $start = strip_tags($_POST['start']);
+                $end = strip_tags($_POST['end']);
+
+                $_SESSION['name']  = $name;
+                $_SESSION['phone'] = $phone;
+                $_SESSION['email'] = $email;
+                $_SESSION['start-datetime'] = $start;
+                $_SESSION['end-datetime']   = $end;
+
                 $this->makeSchedule();
             }else{
-                die(var_dump($this->errorUserInput));
+                die('it is a bot!');
             }
+
         }else{
             $this->view->load('404');
         }
@@ -61,12 +59,8 @@ class ScheduleController extends Controller
 
         if (isset($_SESSION['access_token']) && $_SESSION['access_token']) {
             $this->client->setAccessToken($_SESSION['access_token']);
-            $service = new Google_Service_Calendar($this->client);
 
-            $calendarId = 'primary';
-
-            $results = $service->events->listEvents($calendarId);
-            return $results->getItems();
+            $this->storeEvent();
 
         }else{
             $rurl = "http://localhost:3000/schedule/makeSchedule/";
@@ -87,25 +81,45 @@ class ScheduleController extends Controller
     }
 
     public function storeEvent(){
+
         if (isset($_SESSION['access_token']) && $_SESSION['access_token']) {
             $this->client->setAccessToken($_SESSION['access_token']);
             $service = new Google_Service_Calendar($this->client);
 
             $calendarId = 'primary';
             $event = new Google_Service_Calendar_Event([
-                'summary' => "Još jedan test bez podataka",
-                'description' => "valjda je uspelo",
-                'start' => ['date' => '2020-08-30'],
-                'end' => ['date' => '2020-09-01'],
-                'reminders' => ['useDefault' => true],
+                'summary' => "Event created: User {$_SESSION['name']}",
+                'description' => "<h2>Created by {$_SESSION['name']}</h2><h4>Email: {$_SESSION['email']}</h4><h4>Phone: {$_SESSION['phone']}</h4>",
+                'start' => [
+                    'dateTime' => "{$_SESSION['start-datetime']}",
+                    'timeZone' => 'America/Los_Angeles'
+                ],
+                'end' => [
+                    'dateTime' => "{$_SESSION['end-datetime']}",
+                    'timeZone' => 'America/Los_Angeles'
+                ],
+                'reminders' => [
+                        'useDefault' => false,
+                        'overrides' => [
+                            ['method' => 'email', 'minutes' => '30'],
+                            ['method' => 'email', 'minutes' => '15']
+                        ]
+                    ],
+                'visibility' => "public"
             ]);
             $results = $service->events->insert($calendarId, $event);
             if (!$results) {
-                //return response()->json(['status' => 'error', 'message' => 'Something went wrong']);
-                echo "došlo je do greške";
+                $this->view->load('error');
+            }else{
+                try{
+                    mail($_SESSION['email'], 'Event created', 'You have successfully created event');
+                }catch (\Exception $e){
+                    // log error message;
+                    $error = $e->getMessage();
+                };
+                $this->view->load('success');
             }
-            //return response()->json(['status' => 'success', 'message' => 'Event Created']);
-            echo "napokon!";
+
         }
     }
 
